@@ -62,8 +62,8 @@
         const response = await fetch('https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=en&to=zh-Hans', {
             method: 'POST',
             headers: {
-                'Ocp-Apim-Subscription-Key': '여기에_복사한_키_1_을_넣으세요',
-                'Ocp-Apim-Region': 'koreacentral', // 아까 지역을 Korea Central로 하셨다면 그대로 두세요.
+                'Ocp-Apim-Subscription-Key': '20IjTUNQRmESLv0AtQn85JbBHS3RSQE30vp7JXTI2i0CvktGq91PJQQJ99CFAC3pKaRXJ3w3AAAbACOG4lFy',
+                'Ocp-Apim-Region': 'eastasia', // 아까 지역을 Korea Central로 하셨다면 그대로 두세요.
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify([{ 'text': text }])
