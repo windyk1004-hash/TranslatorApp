@@ -2,7 +2,8 @@
   "routes": [
     {
       "route": "/api/*",
-      "allowedRoles": ["anonymous"]
+      "allowedRoles": ["anonymous"],
+      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
     },
     {
       "route": "/*",
@@ -17,7 +18,12 @@
       "*.json",
       "*.js",
       "*.css",
-      "*.html"
+      "*.html",
+      "*.ico",
+      "*.png"
     ]
+  },
+  "mimeTypes": {
+    ".json": "application/json"
   }
 }
