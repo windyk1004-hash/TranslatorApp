@@ -9,15 +9,14 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Noto Sans KR', sans-serif; background: linear-gradient(135deg, #ffeef3 0%, #ffc7d8 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); padding-bottom: 20px; }
-        .header { background: linear-gradient(135deg, #ff9fc7 0%, #ffb3d1 100%); color: white; padding: 30px; text-align: center; border-radius: 20px 20px 0 0; position: relative; }
-        .header h1 { font-size: 2rem; margin-bottom: 10px; }
-        .section { margin: 20px; background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .section-title { font-weight: 700; margin-bottom: 15px; color: #333; display: flex; align-items: center; gap: 10px; }
-        .section-title::before { content: ''; width: 4px; height: 20px; background: #ff9fc7; border-radius: 2px; }
-        textarea { width: 100%; height: 120px; padding: 15px; border: 2px solid #eee; border-radius: 12px; margin-bottom: 10px; resize: vertical; }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #ff9fc7 0%, #ffb3d1 100%); color: white; padding: 30px; text-align: center; position: relative; }
+        .history-btn { position: absolute; top: 30px; right: 30px; background: rgba(255,255,255,0.2); color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; border: none; font-size: 0.9rem; }
+        .section { padding: 30px; border-bottom: 1px solid #eee; }
+        .section-title { font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        textarea { width: 100%; height: 120px; padding: 15px; border: 2px solid #eee; border-radius: 12px; margin-bottom: 10px; }
         .btn { background: #ff9fc7; color: white; border: none; padding: 15px; border-radius: 50px; width: 100%; font-weight: 600; cursor: pointer; }
-        .result-container { background: #fff0f5; border-radius: 12px; padding: 20px; margin-top: 20px; border-left: 5px solid #ff9fc7; }
+        .result-container { background: #fef7f9; border-radius: 12px; padding: 20px; margin-top: 20px; border-left: 5px solid #ff9fc7; }
         .result-text { font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
         .pinyin-text { font-size: 0.9rem; color: #888; font-style: italic; margin-top: 5px; }
     </style>
@@ -26,39 +25,40 @@
     <div class="container">
         <header class="header">
             <h1>🌍 나만의 번역 앱</h1>
-            <p>중국어, 영어, 한국어를 자유롭게 번역해보세요</p>
+            <button class="history-btn">📚 히스토리</button>
         </header>
 
-        <main class="content">
-            <section class="section">
-                <div class="section-title">🔄 한국어 → 영어/중국어</div>
-                <textarea id="bottomInput" placeholder="한국어를 입력하세요..."></textarea>
-                <button class="btn" onclick="handleTranslate()">번역하기</button>
-                
-                <div id="bottomResult" class="result-container" style="display: none;">
-                    <div id="englishResult" class="result-text" style="color: #444;"></div>
-                    <div id="chineseResult" class="result-text" style="color: #d63384; margin-top: 10px;"></div>
-                    <div id="chinesePinyin" class="pinyin-text"></div>
-                </div>
-            </section>
-        </main>
+        <section class="section">
+            <div class="section-title">🔄 중국어/영어 → 한국어</div>
+            <textarea id="topInput" placeholder="입력하세요..."></textarea>
+            <button class="btn" onclick="translateToKorean()">한국어로 번역</button>
+            <div id="topResult" class="result-container" style="display: none;"></div>
+        </section>
+
+        <section class="section">
+            <div class="section-title">🔄 한국어 → 영어/중국어</div>
+            <textarea id="bottomInput" placeholder="한국어를 입력하세요..."></textarea>
+            <button class="btn" onclick="translateFromKorean()">영어/중국어로 번역</button>
+            <div id="bottomResult" class="result-container" style="display: none;">
+                <div id="englishResult" class="result-text"></div>
+                <div id="chineseResult" class="result-text" style="margin-top: 10px;"></div>
+                <div id="chinesePinyin" class="pinyin-text"></div>
+            </div>
+        </section>
     </div>
 
     <script>
-        // 이 함수 내부에 실제 번역 로직(API 호출)을 연결해야 합니다.
-        function handleTranslate() {
+        // 번역 함수 예시 (API 연동 전 테스트용)
+        function translateFromKorean() {
             const text = document.getElementById('bottomInput').value.trim();
-            if (!text) return alert('텍스트를 입력하세요');
-
-            // 실제 번역 API를 호출하는 로직이 여기에 들어가야 합니다.
-            // 지금은 테스트용으로 더미 데이터를 보여줍니다.
-            document.getElementById('englishResult').textContent = "English: " + text;
-            document.getElementById('chineseResult').textContent = "中文: " + text;
+            if (!text) return;
             
-            // 병음 처리
+            // 병음 처리 (로컬)
             const pinyin = pinyinPro.pinyin(text, { toneType: 'num' });
-            document.getElementById('chinesePinyin').textContent = "[" + pinyin + "]";
             
+            document.getElementById('englishResult').textContent = "영문: " + text;
+            document.getElementById('chineseResult').textContent = "중문: " + text;
+            document.getElementById('chinesePinyin').textContent = "[" + pinyin + "]";
             document.getElementById('bottomResult').style.display = 'block';
         }
     </script>
