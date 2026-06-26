@@ -1,7 +1,7 @@
 module.exports = async function (context, req) {
   try {
-    const apiKey = process.env.AZURE_TRANSLATOR_API_KEY;
-    const region = process.env.AZURE_REGION || 'eastasia';
+    const apiKey = process.env.TRANSLATOR_KEY;
+    const region = 'eastasia';
 
     if (!apiKey) {
       context.res = {
