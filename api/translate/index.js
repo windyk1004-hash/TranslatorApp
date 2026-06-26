@@ -2,6 +2,17 @@ const https = require('https');
 const { URL } = require('url');
 
 module.exports = async function (context, req) {
+  // 테스트: 함수가 작동하는지 확인
+  context.res = {
+    status: 200,
+    body: {
+      success: true,
+      translatedText: 'TEST: 함수가 정상 작동합니다.',
+      apiKeyStatus: process.env.TRANSLATOR_KEY ? '설정됨' : '미설정'
+    }
+  };
+  return;
+
   try {
     const apiKey = process.env.TRANSLATOR_KEY;
     const region = 'eastasia';
