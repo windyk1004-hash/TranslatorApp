@@ -3,40 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나만의 번역 앱</title>
+    <title>🌍 나만의 번역 앱</title>
     <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.20.0/dist/pinyin-pro.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Noto Sans KR', sans-serif; background: linear-gradient(135deg, #ffeef3 0%, #ffc7d8 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); overflow: hidden; }
-        
-        /* 줄 바꿈 유지 및 텍스트 스타일 */
-        .result-text { 
-            font-size: 1.1rem; line-height: 1.6; color: #333; 
-            white-space: pre-wrap; /* 줄 바꿈 및 공백 유지 */
-            word-break: break-all;  /* 긴 단어 강제 줄 바꿈 */
-        }
-
-        .header { background: linear-gradient(135deg, #ff9fc7 0%, #ffb3d1 100%); color: white; padding: 30px; text-align: center; }
-        .section { margin: 20px; background: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
-        .btn { background: linear-gradient(135deg, #ff9fc7 0%, #ffb3d1 100%); color: white; border: none; padding: 15px 30px; border-radius: 50px; width: 100%; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
-        .result-container { background: #fef7f9; border-radius: 12px; padding: 20px; margin-top: 20px; border-left: 4px solid #ff9fc7; }
-        .pinyin-text { font-size: 0.9rem; color: #777; margin-top: 8px; font-style: italic; }
+        .container { max-width: 800px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); padding-bottom: 20px; }
+        .header { background: linear-gradient(135deg, #ff9fc7 0%, #ffb3d1 100%); color: white; padding: 30px; text-align: center; border-radius: 20px 20px 0 0; position: relative; }
+        .header h1 { font-size: 2rem; margin-bottom: 10px; }
+        .section { margin: 20px; background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .section-title { font-weight: 700; margin-bottom: 15px; color: #333; display: flex; align-items: center; gap: 10px; }
+        .section-title::before { content: ''; width: 4px; height: 20px; background: #ff9fc7; border-radius: 2px; }
+        textarea { width: 100%; height: 120px; padding: 15px; border: 2px solid #eee; border-radius: 12px; margin-bottom: 10px; resize: vertical; }
+        .btn { background: #ff9fc7; color: white; border: none; padding: 15px; border-radius: 50px; width: 100%; font-weight: 600; cursor: pointer; }
+        .result-container { background: #fff0f5; border-radius: 12px; padding: 20px; margin-top: 20px; border-left: 5px solid #ff9fc7; }
+        .result-text { font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+        .pinyin-text { font-size: 0.9rem; color: #888; font-style: italic; margin-top: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <header class="header"><h1>🌍 나만의 번역 앱</h1></header>
+        <header class="header">
+            <h1>🌍 나만의 번역 앱</h1>
+            <p>중국어, 영어, 한국어를 자유롭게 번역해보세요</p>
+        </header>
 
         <main class="content">
             <section class="section">
-                <textarea id="bottomInput" style="width:100%; height:100px;"></textarea>
-                <button id="bottomTranslateBtn" class="btn" onclick="translateFromKorean()">영어/중국어로 번역</button>
+                <div class="section-title">🔄 한국어 → 영어/중국어</div>
+                <textarea id="bottomInput" placeholder="한국어를 입력하세요..."></textarea>
+                <button class="btn" onclick="handleTranslate()">번역하기</button>
                 
                 <div id="bottomResult" class="result-container" style="display: none;">
-                    <div id="englishResult" class="result-text"></div>
-                    <div id="chineseResult" class="result-text" style="margin-top:10px;"></div>
+                    <div id="englishResult" class="result-text" style="color: #444;"></div>
+                    <div id="chineseResult" class="result-text" style="color: #d63384; margin-top: 10px;"></div>
                     <div id="chinesePinyin" class="pinyin-text"></div>
                 </div>
             </section>
@@ -44,21 +45,21 @@
     </div>
 
     <script>
-        function translateFromKorean() {
+        // 이 함수 내부에 실제 번역 로직(API 호출)을 연결해야 합니다.
+        function handleTranslate() {
             const text = document.getElementById('bottomInput').value.trim();
-            // (생략: 기존 google.script.run 호출 부분은 그대로 두세요)
+            if (!text) return alert('텍스트를 입력하세요');
+
+            // 실제 번역 API를 호출하는 로직이 여기에 들어가야 합니다.
+            // 지금은 테스트용으로 더미 데이터를 보여줍니다.
+            document.getElementById('englishResult').textContent = "English: " + text;
+            document.getElementById('chineseResult').textContent = "中文: " + text;
             
-            // 번역 성공 핸들러 내부에서 병원 처리:
-            google.script.run.withSuccessHandler(function(result) {
-                document.getElementById('englishResult').textContent = result.englishTranslation;
-                document.getElementById('chineseResult').textContent = result.chineseTranslation;
-                
-                // pinyin-pro를 이용한 병음 생성 (로컬 처리)
-                const pinyinResult = pinyinPro.pinyin(result.chineseTranslation, { toneType: 'num' });
-                document.getElementById('chinesePinyin').textContent = `[${pinyinResult}]`;
-                
-                document.getElementById('bottomResult').style.display = 'block';
-            }).translateFromKorean(text);
+            // 병음 처리
+            const pinyin = pinyinPro.pinyin(text, { toneType: 'num' });
+            document.getElementById('chinesePinyin').textContent = "[" + pinyin + "]";
+            
+            document.getElementById('bottomResult').style.display = 'block';
         }
     </script>
 </body>
