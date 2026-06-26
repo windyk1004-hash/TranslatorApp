@@ -1,4 +1,5 @@
 module.exports = async function (context, req) {
+  context.log('=== Translate API called ===');
   try {
     const apiKey = process.env.TRANSLATOR_KEY;
     const region = 'eastasia';
