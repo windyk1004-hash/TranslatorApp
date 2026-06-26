@@ -3,7 +3,11 @@ module.exports = async function (context, req) {
     const apiKey = process.env.TRANSLATOR_KEY;
     const region = 'eastasia';
 
+    context.log('TRANSLATOR_KEY:', apiKey ? '설정됨' : '미설정');
+    context.log('Request body:', JSON.stringify(req.body));
+
     if (!apiKey) {
+      context.log('ERROR: API 키가 설정되지 않았습니다.');
       context.res = {
         status: 500,
         body: { success: false, error: 'API 키가 설정되지 않았습니다.' }
