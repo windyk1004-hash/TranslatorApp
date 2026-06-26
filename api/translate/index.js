@@ -1,80 +1,50 @@
 const https = require('https');
-const { URL } = require('url');
 
 module.exports = async function (context, req) {
-  // 테스트: 함수가 작동하는지 확인
-  context.res = {
-    status: 200,
-    body: {
-      success: true,
-      translatedText: 'TEST: 함수가 정상 작동합니다.',
-      apiKeyStatus: process.env.TRANSLATOR_KEY ? '설정됨' : '미설정'
-    }
-  };
-  return;
-
   try {
     const apiKey = process.env.TRANSLATOR_KEY;
-    const region = 'eastasia';
 
     if (!apiKey) {
-      context.res = {
-        status: 500,
-        body: { success: false, error: 'API 키가 설정되지 않았습니다.' }
+      return {
+        status: 400,
+        body: JSON.stringify({ success: false, error: 'API 키 없음' })
       };
-      return;
     }
 
-    const { text, from, to } = req.body;
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const { text, from, to } = body;
 
     if (!text || !to) {
-      context.res = {
+      return {
         status: 400,
-        body: { success: false, error: '텍스트와 목표 언어는 필수입니다.' }
+        body: JSON.stringify({ success: false, error: '필수 파라미터 없음' })
       };
-      return;
     }
 
-    const languageMap = {
-      'ko': 'ko',
-      'en': 'en',
-      'zh': 'zh-Hans',
-      'auto': 'auto'
-    };
+    const result = await translate(text, from || 'auto', to, apiKey);
 
-    const sourceCode = languageMap[from] || from || 'auto';
-    const targetCode = languageMap[to] || to;
-
-    const translatedText = await translateWithAzure(text, sourceCode, targetCode, apiKey, region);
-
-    context.res = {
+    return {
       status: 200,
-      body: {
+      body: JSON.stringify({
         success: true,
-        translatedText: translatedText
-      }
+        translatedText: result
+      })
     };
 
   } catch (error) {
-    context.log('오류:', error.message);
-    context.res = {
+    return {
       status: 500,
-      body: {
+      body: JSON.stringify({
         success: false,
-        error: error.message || '번역 중 오류가 발생했습니다.'
-      }
+        error: error.message
+      })
     };
   }
 };
 
-function translateWithAzure(text, fromLang, toLang, apiKey, region) {
+function translate(text, fromLang, toLang, apiKey) {
   return new Promise((resolve, reject) => {
-    const url = new URL('https://api.cognitive.microsofttranslator.com/translate');
-    url.searchParams.append('api-version', '3.0');
-    url.searchParams.append('from', fromLang);
-    url.searchParams.append('to', toLang);
-
-    const postData = JSON.stringify([{ Text: text }]);
+    const data = JSON.stringify([{ Text: text }]);
 
     const options = {
       hostname: 'api.cognitive.microsofttranslator.com',
@@ -82,40 +52,34 @@ function translateWithAzure(text, fromLang, toLang, apiKey, region) {
       method: 'POST',
       headers: {
         'Ocp-Apim-Subscription-Key': apiKey,
-        'Ocp-Apim-Region': region,
+        'Ocp-Apim-Region': 'eastasia',
         'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
+        'Content-Length': data.length
       }
     };
 
     const req = https.request(options, (res) => {
-      let data = '';
+      let responseData = '';
 
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
+      res.on('data', chunk => responseData += chunk);
 
       res.on('end', () => {
         if (res.statusCode !== 200) {
-          reject(new Error(`Azure API 오류: ${res.statusCode} - ${data}`));
+          reject(new Error(`Status ${res.statusCode}: ${responseData}`));
           return;
         }
 
         try {
-          const result = JSON.parse(data);
-          const translatedText = result[0].translations[0].text;
-          resolve(translatedText);
+          const parsed = JSON.parse(responseData);
+          resolve(parsed[0].translations[0].text);
         } catch (e) {
-          reject(new Error('응답 파싱 오류: ' + e.message));
+          reject(new Error(`Parse error: ${e.message}`));
         }
       });
     });
 
-    req.on('error', (error) => {
-      reject(new Error('API 호출 실패: ' + error.message));
-    });
-
-    req.write(postData);
+    req.on('error', reject);
+    req.write(data);
     req.end();
   });
 }
