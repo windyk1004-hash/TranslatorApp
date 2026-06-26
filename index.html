@@ -49,18 +49,45 @@
 
     <script>
         // 번역 함수 예시 (API 연동 전 테스트용)
-        function translateFromKorean() {
-            const text = document.getElementById('bottomInput').value.trim();
-            if (!text) return;
-            
-            // 병음 처리 (로컬)
-            const pinyin = pinyinPro.pinyin(text, { toneType: 'num' });
-            
-            document.getElementById('englishResult').textContent = "영문: " + text;
-            document.getElementById('chineseResult').textContent = "중문: " + text;
-            document.getElementById('chinesePinyin').textContent = "[" + pinyin + "]";
-            document.getElementById('bottomResult').style.display = 'block';
-        }
+        async function handleTranslate() {
+    const text = document.getElementById('bottomInput').value.trim();
+    if (!text) return alert('텍스트를 입력해주세요.');
+
+    const btn = document.querySelector('.btn');
+    btn.textContent = '번역 중...';
+    btn.disabled = true;
+
+    // Azure Translator API 호출 (실제 API 호출)
+    try {
+        const response = await fetch('https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=en&to=zh-Hans', {
+            method: 'POST',
+            headers: {
+                'Ocp-Apim-Subscription-Key': '여기에_복사한_키_1_을_넣으세요',
+                'Ocp-Apim-Region': 'koreacentral', // 아까 지역을 Korea Central로 하셨다면 그대로 두세요.
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify([{ 'text': text }])
+        });
+
+        const data = await response.json();
+        const translations = data[0].translations;
+
+        document.getElementById('englishResult').textContent = "English: " + translations[0].text;
+        document.getElementById('chineseResult').textContent = "中文: " + translations[1].text;
+        
+        // 병음 생성
+        const pinyin = pinyinPro.pinyin(translations[1].text, { toneType: 'num' });
+        document.getElementById('chinesePinyin').textContent = "[" + pinyin + "]";
+        
+        document.getElementById('bottomResult').style.display = 'block';
+    } catch (error) {
+        alert('번역 중 오류가 발생했습니다.');
+        console.error(error);
+    } finally {
+        btn.textContent = '번역하기';
+        btn.disabled = false;
+    }
+}
     </script>
 </body>
 </html>
