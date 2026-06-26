@@ -1,14 +1,12 @@
+const https = require('https');
+const { URL } = require('url');
+
 module.exports = async function (context, req) {
-  context.log('=== Translate API called ===');
   try {
     const apiKey = process.env.TRANSLATOR_KEY;
     const region = 'eastasia';
 
-    context.log('TRANSLATOR_KEY:', apiKey ? '설정됨' : '미설정');
-    context.log('Request body:', JSON.stringify(req.body));
-
     if (!apiKey) {
-      context.log('ERROR: API 키가 설정되지 않았습니다.');
       context.res = {
         status: 500,
         body: { success: false, error: 'API 키가 설정되지 않았습니다.' }
@@ -36,52 +34,77 @@ module.exports = async function (context, req) {
     const sourceCode = languageMap[from] || from || 'auto';
     const targetCode = languageMap[to] || to;
 
-    const endpoint = 'https://api.cognitive.microsofttranslator.com/translate';
-    const url = new URL(endpoint);
-    url.searchParams.append('api-version', '3.0');
-    url.searchParams.append('from', sourceCode);
-    url.searchParams.append('to', targetCode);
-
-    const response = await fetch(url.toString(), {
-      method: 'POST',
-      headers: {
-        'Ocp-Apim-Subscription-Key': apiKey,
-        'Ocp-Apim-Region': region,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify([{ 'Text': text }])
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      context.log('Azure API 오류:', response.status, errorText);
-      context.res = {
-        status: response.status,
-        body: { success: false, error: `Azure API 오류: ${response.statusText}` }
-      };
-      return;
-    }
-
-    const result = await response.json();
-    const translatedText = result[0].translations[0].text;
+    const translatedText = await translateWithAzure(text, sourceCode, targetCode, apiKey, region);
 
     context.res = {
       status: 200,
       body: {
         success: true,
-        translatedText: translatedText,
-        sourceLanguage: sourceCode
+        translatedText: translatedText
       }
     };
 
   } catch (error) {
-    context.log('번역 오류:', error.message);
+    context.log('오류:', error.message);
     context.res = {
       status: 500,
       body: {
         success: false,
-        error: '번역 중 오류가 발생했습니다: ' + error.message
+        error: error.message || '번역 중 오류가 발생했습니다.'
       }
     };
   }
 };
+
+function translateWithAzure(text, fromLang, toLang, apiKey, region) {
+  return new Promise((resolve, reject) => {
+    const url = new URL('https://api.cognitive.microsofttranslator.com/translate');
+    url.searchParams.append('api-version', '3.0');
+    url.searchParams.append('from', fromLang);
+    url.searchParams.append('to', toLang);
+
+    const postData = JSON.stringify([{ Text: text }]);
+
+    const options = {
+      hostname: 'api.cognitive.microsofttranslator.com',
+      path: `/translate?api-version=3.0&from=${fromLang}&to=${toLang}`,
+      method: 'POST',
+      headers: {
+        'Ocp-Apim-Subscription-Key': apiKey,
+        'Ocp-Apim-Region': region,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      res.on('end', () => {
+        if (res.statusCode !== 200) {
+          reject(new Error(`Azure API 오류: ${res.statusCode} - ${data}`));
+          return;
+        }
+
+        try {
+          const result = JSON.parse(data);
+          const translatedText = result[0].translations[0].text;
+          resolve(translatedText);
+        } catch (e) {
+          reject(new Error('응답 파싱 오류: ' + e.message));
+        }
+      });
+    });
+
+    req.on('error', (error) => {
+      reject(new Error('API 호출 실패: ' + error.message));
+    });
+
+    req.write(postData);
+    req.end();
+  });
+}
