@@ -38,15 +38,6 @@ module.exports = async function (context, req) {
     return;
   }
 
-  if (!translatorRegion) {
-    context.res = jsonResponse(500, {
-      success: false,
-      code: 'MISSING_TRANSLATOR_REGION',
-      error: 'Azure Translator 지역이 설정되지 않았습니다. Static Web App의 Application settings에 TRANSLATOR_REGION을 추가하세요.'
-    });
-    return;
-  }
-
   if (!text || typeof text !== 'string' || !text.trim()) {
     context.res = jsonResponse(400, {
       success: false,
@@ -75,13 +66,18 @@ module.exports = async function (context, req) {
   }
 
   try {
+    const headers = {
+      'Ocp-Apim-Subscription-Key': translatorKey,
+      'Content-Type': 'application/json'
+    };
+
+    if (translatorRegion) {
+      headers['Ocp-Apim-Subscription-Region'] = translatorRegion;
+    }
+
     const response = await fetch(`${translatorEndpoint}/translate?${query}`, {
       method: 'POST',
-      headers: {
-        'Ocp-Apim-Subscription-Key': translatorKey,
-        'Ocp-Apim-Subscription-Region': translatorRegion,
-        'Content-Type': 'application/json'
-      },
+      headers,
       body: JSON.stringify([{ text }])
     });
 
