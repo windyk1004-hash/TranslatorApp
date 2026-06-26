@@ -1,0 +1,14 @@
+{
+  "name": "translator-api",
+  "version": "1.0.0",
+  "description": "Azure Functions for translation API",
+  "main": "index.js",
+  "scripts": {
+    "start": "func start",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "azure-functions-core-tools": "^4.0.5106"
+  }
+}
