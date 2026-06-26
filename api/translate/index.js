@@ -1,22 +1,38 @@
 const DEFAULT_TRANSLATOR_ENDPOINT = 'https://api.cognitive.microsofttranslator.com';
 
 module.exports = async function (context, req) {
+  const translatorKey = process.env.TRANSLATOR_KEY;
+  const translatorRegion = process.env.TRANSLATOR_REGION;
+  const translatorEndpoint = process.env.TRANSLATOR_ENDPOINT || DEFAULT_TRANSLATOR_ENDPOINT;
+
+  if (req.method === 'GET') {
+    context.res = jsonResponse(200, {
+      success: true,
+      message: 'Translation API is running.',
+      configuration: {
+        translatorKeyConfigured: Boolean(translatorKey),
+        translatorRegionConfigured: Boolean(translatorRegion),
+        translatorEndpoint
+      }
+    });
+    return;
+  }
+
   if (req.method !== 'POST') {
     context.res = jsonResponse(405, {
       success: false,
+      code: 'METHOD_NOT_ALLOWED',
       error: 'POST 요청만 지원합니다.'
     });
     return;
   }
 
   const { text, from, to } = req.body || {};
-  const translatorKey = process.env.TRANSLATOR_KEY;
-  const translatorRegion = process.env.TRANSLATOR_REGION;
-  const translatorEndpoint = process.env.TRANSLATOR_ENDPOINT || DEFAULT_TRANSLATOR_ENDPOINT;
 
   if (!translatorKey) {
     context.res = jsonResponse(500, {
       success: false,
+      code: 'MISSING_TRANSLATOR_KEY',
       error: 'Azure Translator 키가 설정되지 않았습니다. Static Web App의 Application settings에 TRANSLATOR_KEY를 추가하세요.'
     });
     return;
@@ -25,6 +41,7 @@ module.exports = async function (context, req) {
   if (!translatorRegion) {
     context.res = jsonResponse(500, {
       success: false,
+      code: 'MISSING_TRANSLATOR_REGION',
       error: 'Azure Translator 지역이 설정되지 않았습니다. Static Web App의 Application settings에 TRANSLATOR_REGION을 추가하세요.'
     });
     return;
@@ -33,6 +50,7 @@ module.exports = async function (context, req) {
   if (!text || typeof text !== 'string' || !text.trim()) {
     context.res = jsonResponse(400, {
       success: false,
+      code: 'INVALID_TEXT',
       error: '번역할 텍스트를 입력하세요.'
     });
     return;
@@ -41,6 +59,7 @@ module.exports = async function (context, req) {
   if (!to || typeof to !== 'string') {
     context.res = jsonResponse(400, {
       success: false,
+      code: 'INVALID_TARGET_LANGUAGE',
       error: '대상 언어가 올바르지 않습니다.'
     });
     return;
@@ -80,6 +99,7 @@ module.exports = async function (context, req) {
       context.log.error('Translator API error', response.status, apiMessage);
       context.res = jsonResponse(response.status, {
         success: false,
+        code: body?.error?.code || 'TRANSLATOR_API_ERROR',
         error: apiMessage
       });
       return;
@@ -91,6 +111,7 @@ module.exports = async function (context, req) {
       context.log.error('Unexpected Translator API response', body);
       context.res = jsonResponse(502, {
         success: false,
+        code: 'INVALID_TRANSLATOR_RESPONSE',
         error: '번역 결과를 읽을 수 없습니다.'
       });
       return;
@@ -105,6 +126,7 @@ module.exports = async function (context, req) {
     context.log.error('Translator API request failed', error);
     context.res = jsonResponse(502, {
       success: false,
+      code: 'TRANSLATOR_REQUEST_FAILED',
       error: 'Azure Translator API 호출에 실패했습니다.'
     });
   }

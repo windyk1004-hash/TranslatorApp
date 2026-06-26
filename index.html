@@ -382,6 +382,11 @@
             }
 
             if (!response.ok || !data.success) {
+                console.error('Translate API error', {
+                    status: response.status,
+                    code: data.code,
+                    error: data.error
+                });
                 throw new Error(data.error || `API 오류: ${response.status}`);
             }
 
